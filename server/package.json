@@ -3,7 +3,7 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon index.js",
-    "start": "bun index.js"
+    "start": "bun src/index.js"
   },
   "private": true,
   "devDependencies": {
