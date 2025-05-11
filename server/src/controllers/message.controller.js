@@ -1,5 +1,6 @@
 import Message from "../../models/message.model.js";
 import User from "../../models/user.model.js";
+import cloudinary from "../lib/cloudinary.js";
 
 export const getUsers = async (req, res) => {
   try {
@@ -46,18 +47,29 @@ export const getMessages = async (req, res) => {
 
 export const sendMessage = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { message } = req.body;
+    const { id: receiverId } = req.params;
+    const { text, image } = req.body;
 
     const loggedInUserId = req.user._id;
 
+    let imageUrl;
+    if (image) {
+      const uplloadResponse = await cloudinary.uploader.upload(image);
+
+      imageUrl = uplloadResponse.secure_url;
+    }
     const newMessage = await Message.create({
-      sender: loggedInUserId,
-      receiver: id,
-      message,
+      senderId: loggedInUserId,
+      receiverId,
+      text,
+      image: imageUrl,
     });
 
-    res.status(200).json(newMessage);
+    await newMessage.save();
+
+    //Real time message
+
+    res.status(201).json(newMessage);
   } catch (error) {
     console.log(`Error in Send Message Controller :- ${error.message}`);
 
