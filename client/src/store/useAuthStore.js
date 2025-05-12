@@ -14,6 +14,8 @@ export const useAuthStore = create((set) => ({
   checkAuth: async () => {
     try {
       const response = await axiosInstance.get("/auth/check");
+      console.log(response.data);
+
       set({ authUser: response.data });
     } catch (error) {
       console.error("Error checking authentication:", error);
@@ -43,7 +45,8 @@ export const useAuthStore = create((set) => ({
     set({ isLoggingIn: true });
     try {
       const response = await axiosInstance.post("/auth/login", data);
-      set({ authUser: response.data });
+
+      set({ authUser: response.data.User });
       toast.success("Logged in successfully");
     } catch (error) {
       toast.error(
@@ -64,6 +67,25 @@ export const useAuthStore = create((set) => ({
       toast.error(
         error.response?.data?.message || "An error occurred during logout"
       );
+    }
+  },
+
+  updateProfile: async (data) => {
+    set({ isUpdatingProfile: true });
+    try {
+      const response = await axiosInstance.put("/auth/update-profile", data);
+      console.log(response.data);
+
+      set({ authUser: response.data.User });
+      toast.success("Profile Updated Successfully");
+    } catch (error) {
+      console.error("Error Updating Progile:", error);
+      toast.error(
+        error.response?.data?.message ||
+          "An error occurred during Uploading Profile"
+      );
+    } finally {
+      set({ isUpdatingProfile: false });
     }
   },
 }));
