@@ -10,8 +10,10 @@ import { useAuthStore } from "./store/useAuthStore";
 import { Toaster } from "react-hot-toast";
 
 import { LoaderCircle } from "lucide-react";
+import { useThemeStore } from "./store/useThemeStore.js";
 
 const App = () => {
+  const { theme } = useThemeStore();
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
   useEffect(() => {
     checkAuth();
@@ -27,7 +29,7 @@ const App = () => {
   console.log(authUser);
 
   return (
-    <div>
+    <div data-theme={theme}>
       <Navbar />
       <Routes>
         <Route
