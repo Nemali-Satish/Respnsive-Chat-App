@@ -4,10 +4,13 @@ import { generateToken } from "../lib/utils.js";
 import cloudinary from "../lib/cloudinary.js";
 
 export const signup = async (req, res) => {
-  const { fullName, email, password } = req.body;
-
   try {
+    const { fullName, email, password } = req.body;
+
+    console.log("Signup request:", { fullName, email, password }); // Added log
+
     if (!fullName || !password || !email) {
+      console.log("Signup: Missing fields"); // Added log
       return res.status(400).json({
         success: false,
         message: "All Fields are Required!!!",
@@ -15,6 +18,7 @@ export const signup = async (req, res) => {
     }
 
     if (password.length < 6) {
+      console.log("Signup: Password too short"); // Added log
       return res.status(400).json({
         success: false,
         message: "Password must be at least 6 Characters",
@@ -24,6 +28,7 @@ export const signup = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (user) {
+      console.log("Signup: User already exists"); // Added log
       return res.status(400).json({
         success: false,
         message: "User already exists!!",
@@ -43,6 +48,7 @@ export const signup = async (req, res) => {
     if (newUser) {
       generateToken(newUser._id, res);
       await newUser.save();
+      console.log("Signup: User created successfully", newUser); // Added log
 
       res.status(201).json({
         success: true,
@@ -50,14 +56,14 @@ export const signup = async (req, res) => {
         User: newUser,
       });
     } else {
+      console.log("Signup: Invalid user data"); // Added log
       res.status(400).json({
         success: false,
         message: "Invalid User Data",
       });
     }
   } catch (error) {
-    console.log(`Error in Sign Up Controller : ${error.message}`);
-
+    console.error(`Error in Sign Up Controller : ${error.message}`); // Changed to console.error
     res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -67,11 +73,11 @@ export const signup = async (req, res) => {
 
 export const login = async (req, res) => {
   const { email, password } = req.body;
-
-  // console.log("Login Request Body: ", req.body);
+  console.log("Login request:", { email, password }); // Added log
 
   try {
     if (!email || !password) {
+      console.log("Login: Missing fields"); // Added log
       return res.status(400).json({
         success: false,
         message: "All Fields are Required!!!",
@@ -79,6 +85,7 @@ export const login = async (req, res) => {
     }
     const user = await User.findOne({ email });
     if (!user) {
+      console.log("Login: Invalid email"); // Added log
       return res.status(400).json({
         success: false,
         message: "Invalid Credentials",
@@ -86,19 +93,22 @@ export const login = async (req, res) => {
     }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      console.log("Login: Invalid password"); // Added log
       return res.status(400).json({
         success: false,
         message: "Invalid Credentials",
       });
     }
     generateToken(user._id, res);
+    console.log("Login: Login successful", user); // Added log
+
     res.status(200).json({
       success: true,
       message: "Login Successful",
       User: user,
     });
   } catch (error) {
-    console.log(`Error in Login Controller : ${error.message}`);
+    console.error(`Error in Login Controller : ${error.message}`); // Changed to console.error
 
     res.status(500).json({
       success: false,
@@ -109,6 +119,7 @@ export const login = async (req, res) => {
 
 export const logout = (req, res) => {
   try {
+    console.log("Logout: Logging out user"); // Added log
     res.cookie("jwt", "", { maxAge: 0 });
 
     res.status(200).json({
@@ -116,7 +127,7 @@ export const logout = (req, res) => {
       message: "Logout Successful",
     });
   } catch (error) {
-    console.log(`Error in Logout Controller : ${error.message}`);
+    console.error(`Error in Logout Controller : ${error.message}`); // Changed to console.error
 
     res.status(500).json({
       success: false,
@@ -128,16 +139,19 @@ export const logout = (req, res) => {
 export const updateProfile = async (req, res) => {
   try {
     const { profilePic } = req.body;
+    console.log("UpdateProfile request:", { profilePic }); // Added log
 
     const userId = req.user._id;
 
     if (!profilePic) {
+      console.log("UpdateProfile: No profile picture provided"); // Added log
       return res.status(400).json({
         success: false,
         message: "Please provide a profile picture",
       });
     }
     const uploadRsponse = await cloudinary.uploader.upload(profilePic);
+    console.log("UpdateProfile: Cloudinary response", uploadRsponse); // Added log
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
@@ -146,6 +160,7 @@ export const updateProfile = async (req, res) => {
       },
       { new: true }
     );
+    console.log("UpdateProfile: User updated", updatedUser); // Added log
 
     res.status(200).json({
       success: true,
@@ -153,8 +168,7 @@ export const updateProfile = async (req, res) => {
       User: updatedUser,
     });
   } catch (error) {
-    console.log(`Error in Update Profile Controller : ${error.message}`);
-
+    console.error(`Error in Update Profile Controller : ${error.message}`); // Changed to console.error
     res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -164,9 +178,10 @@ export const updateProfile = async (req, res) => {
 
 export const checkAuth = (req, res) => {
   try {
+    console.log("CheckAuth: User is authenticated", req.user); // Added log
     res.status(200).json(req.user);
   } catch (error) {
-    console.log(`Error in Check Auth Controller : ${error.message}`);
+    console.error(`Error in Check Auth Controller : ${error.message}`); // Changed to console.error
 
     res.status(500).json({
       success: false,

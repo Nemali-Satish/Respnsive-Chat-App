@@ -6,9 +6,13 @@ export const getUsers = async (req, res) => {
   try {
     const loggedInUserId = req.user._id;
 
+    console.log("hello");
+
     const filtereUsers = await User.find({
       _id: { $ne: loggedInUserId },
     }).select("-password");
+
+    console.log(filtereUsers);
 
     res.status(200).json(filtereUsers);
   } catch (error) {
@@ -24,13 +28,14 @@ export const getUsers = async (req, res) => {
 export const getMessages = async (req, res) => {
   try {
     const { id } = req.params;
+    console.log(id);
 
     const loggedInUserId = req.user._id;
 
     const messages = await Message.find({
       $or: [
-        { sender: loggedInUserId, receiver: id },
-        { sender: id, receiver: loggedInUserId },
+        { senderId: loggedInUserId, receiverId: id },
+        { senderId: id, receiverId: loggedInUserId },
       ],
     });
 
