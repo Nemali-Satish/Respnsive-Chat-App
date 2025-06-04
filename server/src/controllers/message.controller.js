@@ -1,18 +1,19 @@
 import Message from "../../models/message.model.js";
 import User from "../../models/user.model.js";
 import cloudinary from "../lib/cloudinary.js";
+import { getReceiverSocketId, io } from "../lib/socket.js";
 
 export const getUsers = async (req, res) => {
   try {
     const loggedInUserId = req.user._id;
 
-    console.log("hello");
+    // console.log("hello");
 
     const filtereUsers = await User.find({
       _id: { $ne: loggedInUserId },
     }).select("-password");
 
-    console.log(filtereUsers);
+    // console.log(filtereUsers);
 
     res.status(200).json(filtereUsers);
   } catch (error) {
@@ -28,7 +29,7 @@ export const getUsers = async (req, res) => {
 export const getMessages = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(id);
+    // console.log(id);
 
     const loggedInUserId = req.user._id;
 
@@ -73,6 +74,12 @@ export const sendMessage = async (req, res) => {
     await newMessage.save();
 
     //Real time message
+
+    const receiverSocketId = getReceiverSocketId(receiverId);
+
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("newMessage", newMessage);
+    }
 
     res.status(201).json(newMessage);
   } catch (error) {
